@@ -1,3 +1,0 @@
-tar: .
-# spec: .gear/my_hello.spec
-spec: .gear/my_hello_cmake.spec
