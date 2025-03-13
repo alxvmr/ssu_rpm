@@ -746,5 +746,6 @@ gear-hsh --lazy-cleanup ~/.hasher -v --no-sisyphus-check
 :link: [Советы по упаковке Python-проектов](https://www.altlinux.org/Python_packaging_guide)\
 :link: [Сборка пакетов rpmbuild](https://habr.com/ru/articles/861746/)\
 :link: [Архитектуры репозиториев gear](https://www.altlinux.org/Руководство_по_gear)\
-:link: [Методическое пособие по сборке ПО](https://www.altlinux.org/Images.www.altlinux.org/d/d3/УМП_«Доверенная_разработка_программных_пакетов_и_сборка_программного_обеспечения».pdf)
+:link: [Методическое пособие по сборке ПО](https://www.altlinux.org/Images.www.altlinux.org/d/d3/УМП_«Доверенная_разработка_программных_пакетов_и_сборка_программного_обеспечения».pdf)\
+:link: [Примеры spec-файлов](https://www.altlinux.org/SampleSpecs/program)
 
