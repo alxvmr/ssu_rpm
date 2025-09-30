@@ -98,9 +98,24 @@
     <img src="data/srpm_cpio.png">
 </p>
 
-1. **RPM-пакеты** - архив с расширением `.rpm`. RPM содержит исполняемые файлы и библиотеки:
+2. **RPM-пакеты** - архив с расширением `.rpm`. RPM содержит исполняемые файлы и библиотеки:
 ```
-[alekseevamo@lenovo-93812 usr]$ tree usr
+[test_user@lenovo-93812 noarch]$ pwd
+/home/test_user/RPM/RPMS/noarch
+[test_user@lenovo-93812 noarch]$ ll
+итого 48
+drwxr-xr-x 2 test_user test_user  4096 сен 30 09:56 ./
+-rw-r--r-- 1 test_user test_user 40776 сен 30 09:54 gpresult-0.0.5-alt2.noarch.rpm
+drwxr-xr-x 4 test_user test_user  4096 июл 30 12:25 ../
+[test_user@lenovo-93812 noarch]$ rpm2cpio gpresult-0.0.5-alt2.noarch.rpm | cpio -i --make-directories
+244 блока
+[test_user@lenovo-93812 noarch]$ ll
+итого 52
+drwxr-xr-x 5 test_user test_user  4096 сен 30 09:57 usr/
+drwxr-xr-x 3 test_user test_user  4096 сен 30 09:57 ./
+-rw-r--r-- 1 test_user test_user 40776 сен 30 09:54 gpresult-0.0.5-alt2.noarch.rpm
+drwxr-xr-x 4 test_user test_user  4096 июл 30 12:25 ../
+[test_user@lenovo-93812 noarch]$ tree usr
 usr
 ├── bin
 │   └── gpresult
@@ -108,16 +123,19 @@ usr
 │   └── python3
 │       └── site-packages
 │           ├── gpresult
-│           │   ├── <исходные файлы проекта>
-│           │   ...
-│           │   
-│           └── gpresult-0.0.4.dist-info
+│           │   ├── <python-файлы проекта>
+│           │   ...
+│           └── gpresult-0.0.5.dist-info
 │               ├── entry_points.txt
 │               └── METADATA
 └── share
-    └── bash-completion
-        └── completions
-            └── gpresult
+    ├── bash-completion
+    │   └── completions
+    │       └── gpresult
+    └── locale
+        └── ru
+            └── LC_MESSAGES
+                └── gpresult.mo
 ```
 
 ## Подготовка окружения перед сборкой пакета
@@ -159,6 +177,7 @@ $ cat .rpmmacros
 ## SPEC файл
 **Spec-файл** можно рассматривать как "инструкцию", которая используется для фактической сборки RPM-пакета. Он сообщает системе сборки, что делать, определяя инструкции в серии разделов (в качестве примера взят пакет `gpresult`):
 ```
+%define _unpackaged_files_terminate_build 1
 %add_python3_req_skip gpresult.Preferences.Preferences.Drive
 %add_python3_req_skip gpresult.Preferences.Preferences.EnvVar
 %add_python3_req_skip gpresult.Preferences.Preferences.File
@@ -168,8 +187,8 @@ $ cat .rpmmacros
 %add_python3_req_skip gpresult.Preferences.Preferences.Shortcut
 
 Name: gpresult
-Version: 0.0.4
-Release: alt1
+Version: 0.0.5
+Release: alt2
 
 Summary: Display applied policies
 License: GPLv3+
@@ -179,7 +198,7 @@ BuildArch: noarch
 
 BuildRequires: rpm-build-python3
 BuildRequires: python3(wheel), python3(hatchling), python3(prettytable)
-Requires: libgvdb-gir gpupdate >= 0.11.0
+Requires: gpupdate >= 0.11.0
 
 Source0: %name-%version.tar
 
@@ -195,28 +214,49 @@ The utility allows you to display a list of domain  (GPO) policies that apply to
 
 %install
 %pyproject_install
-install -Dm0644 completions/%name %buildroot/%_datadir/bash-completion/completions/%name
+%find_lang %name
 
-%files
+%files -f %name.lang
 %python3_sitelibdir/%name
-%python3_sitelibdir/%name/locales
 %python3_sitelibdir/%name-%version.dist-info
 %_bindir/%name
 %_datadir/bash-completion/completions/%name
-%exclude %python3_sitelibdir/%name/locales/en_US/LC_MESSAGES/*.po
-%exclude %python3_sitelibdir/%name/locales/ru_RU/LC_MESSAGES/*.po
 
 %changelog
+* Tue May 06 2025 Maria Alexeeva <alxvmr@altlinux.org> 0.0.5-alt2
+- Removed libgvdb-gir dependency (automatic dependency lookup works)
+- Translation files moved to /usr/share/locale/
+- Repackaged translations and added bash-completions to pyproject-toml
+
+* Fri Apr 11 2025 Maria Alexeeva <alxvmr@altlinux.org> 0.0.5-alt1
+- Fixed display of policy version (Closes: #53798)
+
 * Fri Jan 31 2025 Maria Alexeeva <alxvmr@altlinux.org> 0.0.4-alt1
 - Added translations for argparse and fixed typos (Closes: #52282)
 - Removed repetitions when using the -l and -lr options (Closes: #52878)
 - Added --width key to bash completions
+
+* Tue Dec 10 2024 Maria Alexeeva <alxvmr@altlinux.org> 0.0.3-alt1
+- Added output about previous key values
+- Added --previous key
+- Added bash completion (thx skachedubov@altlinux.org)
+- Added a key for setting the column width
+
+* Mon Sep 16 2024 Maria Alexeeva <alxvmr@altlinux.org> 0.0.2-alt1
+- Added output containing information about Preference
+- Added analysis of policies that have no keys
+
+* Mon Sep 02 2024 Evgeny Sinelnikov <sin@altlinux.org> 0.0.1-alt2
+- Initial build for Sisyphus
+
+* Mon Aug 19 2024 Maria Alexeeva <alxvmr@altlinux.org> 0.0.1-alt1
+- First build
 ```
 ### Преамбула
 ```
 Name: gpresult
-Version: 0.0.4
-Release: alt1
+Version: 0.0.5
+Release: alt2
 
 Summary: Display applied policies
 License: GPLv3+
@@ -226,7 +266,7 @@ BuildArch: noarch
 
 BuildRequires: rpm-build-python3
 BuildRequires: python3(wheel), python3(hatchling), python3(prettytable)
-Requires: libgvdb-gir gpupdate >= 0.11.0
+Requires: gpupdate >= 0.11.0
 
 Source0: %name-%version.tar
 ```
